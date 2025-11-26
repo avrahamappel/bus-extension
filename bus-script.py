@@ -2,10 +2,10 @@
 
 import json
 import math
+import os
 import requests
 
 from bs4 import BeautifulSoup
-from pycookiecheat import BrowserType, get_cookies
 
 # Function to calculate the distance between two latitude/longitude points
 def haversine(lat1, lon1, lat2, lon2):
@@ -36,18 +36,32 @@ if testing:
     print("Test passed.")
     exit(0)
 
-url = "https://tstg.mybusplanner.ca/Subscriptions/WheresMyBus"
-# Get cookies from the browser
-cookies = get_cookies(url, browser=BrowserType.FIREFOX)
+login_url = "https://tstg.mybusplanner.ca/Login"
+bus_tracker_url = "https://tstg.mybusplanner.ca/Subscriptions/WheresMyBus"
 
-print(cookies)
+BUS_USERNAME = os.getenv('BUS_USERNAME')
+BUS_PASSWORD = os.getenv('BUS_PASSWORD')
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:145.0) Gecko/20100101 Firefox/145.0'
+}
+login_payload = {
+    'ctl00$MainContent$glogin$lLogin$UserName': BUS_USERNAME,
+    'ctl00$MainContent$glogin$lLogin$Password': BUS_PASSWORD,
+}
+
+# Log into the site
+session = requests.Session()
+session.get(login_url, headers=headers)
+print(session.cookies)
+login_response = session.post(login_url+"?LoginType=Subscriber", data=login_payload, headers=headers) 
+login_response.raise_for_status()
+if login_response.status_code != 302:
+    print("Not logged in")
+    exit(1)
 
 while True:
-    # Call the API
-    response = requests.get(url, cookies=cookies)
+    response = session.get(bus_tracker_url, headers=headers)
     response.raise_for_status()  # Raise an exception for HTTP errors
-
-    # print(response.text)
 
     # Parse the HTML response
     soup = BeautifulSoup(response.text, 'html.parser')
