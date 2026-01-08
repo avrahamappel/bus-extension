@@ -5,8 +5,11 @@ pkgs.mkShell {
     bacon
     cargo
     clippy
+    lld
     rust-analyzer
     rustc
     rustfmt
+    wasm-pack
+    zip
   ];
 }

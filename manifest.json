@@ -1,0 +1,23 @@
+{
+    "manifest_version": 2,
+    "name": "Bus Extension",
+    "version": "0.1.0",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "bus-extension@avrahamappel.com"
+        }
+    },
+    "permissions": [
+        "activeTab"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://tstg.mybusplanner.ca/*"
+            ],
+            "js": [
+                "bus_extension.js"
+            ]
+        }
+    ]
+}
