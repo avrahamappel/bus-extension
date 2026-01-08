@@ -11,6 +11,6 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
 wasm-bindgen = "0.2.106"
 
-[dependencies.web_sys]
-features = ["Document", "Element", "HtmlInputElement", "Window"]
+[dependencies.web-sys]
+features = ["Document", "Element", "HtmlInputElement", "Location", "Window"]
 version = "0.3.83"

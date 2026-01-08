@@ -15,10 +15,8 @@ struct Position {
 
 #[wasm_bindgen(start)]
 fn main() {
-    let document = web_sys::window()
-        .expect("Window not found")
-        .document()
-        .expect("Document not found");
+    let window = web_sys::window().expect("Window not found");
+    let document = window.document().expect("Document not found");
 
     // find bus location
     let bus_location_element = document
@@ -47,10 +45,33 @@ fn main() {
     let stop_lon = stop_positions[0].longitude;
     let distance = haversine(stop_lat, stop_lon, bus_lat, bus_lon);
 
-    // change button to "Distance: distance"
-    // if distance <500 make some noise
-    //
+    // Add element showing "Distance: distance"
+    let distance_el = document.create_element("span").expect("Invalid element");
+    distance_el.set_inner_html(&format!("Distance: {distance} meters"));
+    let refresh_btn = document
+        .query_selector("input#MainContent_NestContent_MapRefresh")
+        .expect("Invalid query")
+        .expect("Refresh button not found");
+    refresh_btn
+        .after_with_node_1(&distance_el)
+        .expect("Element injection failed");
+
+    // TODO if distance <500 make some noise
+
     // sleep 5 seconds then reload page
+    let reload_callback = Closure::once(|| {
+        web_sys::window()
+            .unwrap()
+            .location()
+            .reload()
+            .expect("Page reload failed");
+    });
+    window
+        .set_timeout_with_callback_and_timeout_and_arguments_0(
+            reload_callback.as_ref().unchecked_ref(),
+            5000,
+        )
+        .expect("Timeout set failed");
 }
 
 #[cfg(test)]
