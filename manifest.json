@@ -16,7 +16,8 @@
                 "https://tstg.mybusplanner.ca/*"
             ],
             "js": [
-                "bus_extension.js"
+                "bus_extension.js",
+                "script.js"
             ]
         }
     ]
