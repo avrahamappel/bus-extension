@@ -72,6 +72,7 @@ fn main() {
             5000,
         )
         .expect("Timeout set failed");
+    reload_callback.forget();
 }
 
 #[cfg(test)]
