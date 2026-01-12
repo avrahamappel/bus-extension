@@ -69,7 +69,7 @@ fn main() {
     window
         .set_timeout_with_callback_and_timeout_and_arguments_0(
             reload_callback.as_ref().unchecked_ref(),
-            5000,
+            60 * 1000,
         )
         .expect("Timeout set failed");
     reload_callback.forget();
