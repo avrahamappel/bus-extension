@@ -46,8 +46,13 @@ fn main() {
     let distance = haversine(stop_lat, stop_lon, bus_lat, bus_lon);
 
     // Add element showing "Distance: distance"
+    let distance_str = if distance >= 1000.0 {
+        format!("Distance: {:.1} kilometers", distance / 1000.0)
+    } else {
+        format!("Distance: {distance:.0} meters")
+    };
     let distance_el = document.create_element("span").expect("Invalid element");
-    distance_el.set_inner_html(&format!("Distance: {distance} meters"));
+    distance_el.set_inner_html(&distance_str);
     let refresh_btn = document
         .query_selector("input#MainContent_NestContent_MapRefresh")
         .expect("Invalid query")
