@@ -53,13 +53,14 @@ fn main() {
     };
     let distance_el = document.create_element("span").expect("Invalid element");
     distance_el.set_inner_html(&distance_str);
-    let refresh_btn = document
-        .query_selector("input#MainContent_NestContent_MapRefresh")
+    let eta_chart = document
+        .query_selector("canvas#ETAChart")
         .expect("Invalid query")
-        .expect("Refresh button not found");
-    refresh_btn
-        .after_with_node_1(&distance_el)
+        .expect("ETA chart not found");
+    eta_chart
+        .before_with_node_1(&distance_el)
         .expect("Element injection failed");
+    eta_chart.remove();
 
     // TODO if distance <500 make some noise
 
