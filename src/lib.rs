@@ -15,6 +15,8 @@ struct Position {
 
 #[wasm_bindgen(start)]
 fn main() {
+    console_error_panic_hook::set_once();
+
     let window = web_sys::window().expect("Window not found");
     let document = window.document().expect("Document not found");
 
