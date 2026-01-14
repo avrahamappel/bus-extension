@@ -13,7 +13,7 @@
     "content_scripts": [
         {
             "matches": [
-                "https://tstg.mybusplanner.ca/Subscriptions/WheresMyBus"
+                "https://tstg.mybusplanner.ca/Subscriptions/WheresMyBus*"
             ],
             "js": [
                 "bus_extension.js",
