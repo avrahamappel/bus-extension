@@ -10,7 +10,7 @@ let
   cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
   manifestJson = builtins.fromJSON (builtins.readFile ./manifest.json);
 
-  extensionId = manifestJson.browser_specific_settings.gecko.id;
+  addonId = manifestJson.browser_specific_settings.gecko.id;
 
   firefoxExtensionPath = "extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
 in
@@ -18,6 +18,7 @@ in
 stdenv.mkDerivation {
   pname = cargoToml.package.name;
   inherit (cargoToml.package) version;
+  inherit addonId;
 
   src = ./.;
 
@@ -41,8 +42,9 @@ stdenv.mkDerivation {
   '';
 
   installPhase = ''
-    mkdir -p $out/share/mozilla/${firefoxExtensionPath}/${extensionId}
-    cp pkg/* $out/share/mozilla/${firefoxExtensionPath}/${extensionId}/
+    mkdir -p $out/share/mozilla/${firefoxExtensionPath}/${addonId}
+    cp pkg/* $out/share/mozilla/${firefoxExtensionPath}/${addonId}/
   '';
 
+  meta.mozPermissions = manifestJson.permissions;
 }
