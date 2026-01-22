@@ -8,7 +8,7 @@
 
 let
   cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-  manifestJson = builtins.fromJSON (builtins.readFile ./manifest.json);
+  manifestJson = builtins.fromJSON (builtins.readFile ./extension/manifest.json);
 
   addonId = manifestJson.browser_specific_settings.gecko.id;
 
@@ -44,6 +44,7 @@ stdenv.mkDerivation {
   installPhase = ''
     mkdir -p $out/share/mozilla/${firefoxExtensionPath}/${addonId}
     cp pkg/* $out/share/mozilla/${firefoxExtensionPath}/${addonId}/
+    cp $src/extension/* $out/share/mozilla/${firefoxExtensionPath}/${addonId}/
   '';
 
   meta.mozPermissions = manifestJson.permissions;
