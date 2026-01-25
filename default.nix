@@ -1,5 +1,6 @@
 { stdenv
 , rustPlatform
+, binaryen
 , cargo
 , rustc
 , wasm-bindgen-cli
@@ -26,6 +27,7 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [
     rustPlatform.cargoSetupHook
+    binaryen
     cargo
     rustc
     rustc.llvmPackages.lld
