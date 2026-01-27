@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
-use web_sys::HtmlInputElement;
+use web_sys::{HtmlElement, HtmlInputElement};
 
 mod haversine;
 
@@ -64,7 +64,37 @@ fn main() {
         .expect("Element injection failed");
     eta_chart.remove();
 
-    // TODO if distance <500 make some noise
+    // If distance <500, make some noise
+    if distance < 500.0 {
+        let mut flashing = true;
+        let flash_callback = Closure::new(move || {
+            let color = if distance < 100.0 { "red" } else { "yellow" };
+            let map_element_style = document
+                .query_selector("#wheresMyBusOsm .osm-container-outer")
+                .expect("Invalid query")
+                .expect("Map element not found")
+                .dyn_into::<HtmlElement>()
+                .expect("Not an HTML element")
+                .style();
+            if flashing {
+                map_element_style
+                    .set_property("border-color", color)
+                    .expect("Setting border color failed");
+            } else {
+                map_element_style
+                    .remove_property("border-color")
+                    .expect("Unsetting border color failed");
+            }
+            flashing = !flashing;
+        });
+        window
+            .set_interval_with_callback_and_timeout_and_arguments_0(
+                flash_callback.as_ref().unchecked_ref(),
+                200,
+            )
+            .expect("Interval set failed");
+        flash_callback.forget();
+    }
 
     // sleep 5 seconds then reload page
     let reload_callback = Closure::once(|| {
