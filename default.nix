@@ -7,6 +7,8 @@
 , wasm-pack
 }:
 
+{ version }:
+
 let
   cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
   manifestJson = builtins.fromJSON (builtins.readFile ./extension/manifest.json);
@@ -18,7 +20,7 @@ in
 
 stdenv.mkDerivation {
   pname = cargoToml.package.name;
-  inherit (cargoToml.package) version;
+  inherit version;
   inherit addonId;
 
   src = ./.;
