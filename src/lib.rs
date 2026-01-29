@@ -13,6 +13,11 @@ struct Position {
     longitude: f64,
 }
 
+const CLOSE_DISTANCE_THRESHOLD: f64 = 750.0;
+const CLOSE_DISTANCE_FLASH_INTERVAL: i32 = 500;
+const CLOSER_DISTANCE_THRESHOLD: f64 = 250.0;
+const CLOSER_DISTANCE_FLASH_INTERVAL: i32 = 200;
+
 #[wasm_bindgen(start)]
 fn main() {
     console_error_panic_hook::set_once();
@@ -64,11 +69,10 @@ fn main() {
         .expect("Element injection failed");
     eta_chart.remove();
 
-    // If distance <500, make some noise
-    if distance < 500.0 {
+    // Lights and action when the bus gets closer
+    if distance < CLOSE_DISTANCE_THRESHOLD {
         let mut flashing = true;
         let flash_callback = Closure::new(move || {
-            let color = if distance < 100.0 { "red" } else { "yellow" };
             let map_element_style = document
                 .query_selector("#wheresMyBusOsm .osm-container-outer")
                 .expect("Invalid query")
@@ -78,7 +82,7 @@ fn main() {
                 .style();
             if flashing {
                 map_element_style
-                    .set_property("border-color", color)
+                    .set_property("border-color", "yellow")
                     .expect("Setting border color failed");
             } else {
                 map_element_style
@@ -87,22 +91,24 @@ fn main() {
             }
             flashing = !flashing;
         });
+        let interval = if distance < CLOSER_DISTANCE_THRESHOLD {
+            CLOSER_DISTANCE_FLASH_INTERVAL
+        } else {
+            CLOSE_DISTANCE_FLASH_INTERVAL
+        };
         window
             .set_interval_with_callback_and_timeout_and_arguments_0(
                 flash_callback.as_ref().unchecked_ref(),
-                200,
+                interval,
             )
             .expect("Interval set failed");
         flash_callback.forget();
     }
 
     // sleep 5 seconds then reload page
-    let reload_callback = Closure::once(|| {
-        web_sys::window()
-            .unwrap()
-            .location()
-            .reload()
-            .expect("Page reload failed");
+    let location = window.location();
+    let reload_callback = Closure::once(move || {
+        location.reload().expect("Page reload failed");
     });
     window
         .set_timeout_with_callback_and_timeout_and_arguments_0(
