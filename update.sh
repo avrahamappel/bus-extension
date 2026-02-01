@@ -8,4 +8,4 @@ cargo update
 cargo test
 
 # Check that nix build succeeds
-nix build --no-out-link
+nix build --no-link
