@@ -17,33 +17,30 @@ const CLOSE_DISTANCE_THRESHOLD: f64 = 750.0;
 const CLOSE_DISTANCE_FLASH_INTERVAL: i32 = 500;
 const CLOSER_DISTANCE_THRESHOLD: f64 = 250.0;
 const CLOSER_DISTANCE_FLASH_INTERVAL: i32 = 200;
+const PAGE_RELOAD_TIMEOUT: i32 = 60 * 1000;
 
 #[wasm_bindgen(start)]
-fn main() {
+fn main() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    let window = web_sys::window().expect("Window not found");
-    let document = window.document().expect("Document not found");
+    let window = web_sys::window().ok_or("Window not found")?;
+    let document = window.document().ok_or("Document not found")?;
 
     // find bus location
     let bus_location_element = document
-        .query_selector("input#MainContent_NestContent_hfBusLocation")
-        .expect("Invalid query")
-        .expect("Bus location element not found")
-        .dyn_into::<HtmlInputElement>()
-        .expect("Element is not an input");
-    let bus_position: Position =
-        serde_json::from_str(&bus_location_element.value()).expect("Couldn't decode bus location");
+        .query_selector("input#MainContent_NestContent_hfBusLocation")?
+        .ok_or("Bus location element not found")?
+        .dyn_into::<HtmlInputElement>()?;
+    let bus_position: Position = serde_json::from_str(&bus_location_element.value())
+        .map_err(|err| format!("Error decoding bus location: {:?}", err.classify()))?;
 
     // find stop locations
     let stop_locations_element = document
-        .query_selector("input#MainContent_NestContent_hfBusStopLocations")
-        .expect("Invalid query")
-        .expect("Stop locations element not found")
-        .dyn_into::<HtmlInputElement>()
-        .expect("Element is not an input");
+        .query_selector("input#MainContent_NestContent_hfBusStopLocations")?
+        .ok_or("Stop locations element not found")?
+        .dyn_into::<HtmlInputElement>()?;
     let stop_positions: Vec<Position> = serde_json::from_str(&stop_locations_element.value())
-        .expect("Couldn't decode stop locations");
+        .map_err(|err| format!("Error decoding stop locations: {:?}", err.classify()))?;
 
     // calculate distance
     let bus_lat = bus_position.latitude;
@@ -58,36 +55,36 @@ fn main() {
     } else {
         format!("Distance: {distance:.0} meters")
     };
-    let distance_el = document.create_element("span").expect("Invalid element");
+    let distance_el = document.create_element("span")?;
     distance_el.set_inner_html(&distance_str);
     let eta_chart = document
-        .query_selector("canvas#ETAChart")
-        .expect("Invalid query")
-        .expect("ETA chart not found");
-    eta_chart
-        .before_with_node_1(&distance_el)
-        .expect("Element injection failed");
+        .query_selector("canvas#ETAChart")?
+        .ok_or("ETA chart not found")?;
+    eta_chart.before_with_node_1(&distance_el)?;
     eta_chart.remove();
 
     // Lights and action when the bus gets closer
     if distance < CLOSE_DISTANCE_THRESHOLD {
         let mut flashing = true;
+        let map_element_style = document
+            .query_selector("#wheresMyBusOsm .osm-container-outer")?
+            .ok_or("Map element not found")?
+            .dyn_into::<HtmlElement>()?
+            .style();
         let flash_callback = Closure::new(move || {
-            let map_element_style = document
-                .query_selector("#wheresMyBusOsm .osm-container-outer")
-                .expect("Invalid query")
-                .expect("Map element not found")
-                .dyn_into::<HtmlElement>()
-                .expect("Not an HTML element")
-                .style();
-            if flashing {
-                map_element_style
-                    .set_property("border-color", "yellow")
-                    .expect("Setting border color failed");
+            let style_change_result = if flashing {
+                map_element_style.set_property("border-color", "yellow")
             } else {
                 map_element_style
                     .remove_property("border-color")
-                    .expect("Unsetting border color failed");
+                    .map(|_| ())
+            };
+            if let Err(err) = style_change_result {
+                panic!(
+                    "{}",
+                    err.as_string()
+                        .unwrap_or("Unknown error changing map border style".into())
+                );
             }
             flashing = !flashing;
         });
@@ -96,27 +93,29 @@ fn main() {
         } else {
             CLOSE_DISTANCE_FLASH_INTERVAL
         };
-        window
-            .set_interval_with_callback_and_timeout_and_arguments_0(
-                flash_callback.as_ref().unchecked_ref(),
-                interval,
-            )
-            .expect("Interval set failed");
-        flash_callback.forget();
+        window.set_interval_with_callback_and_timeout_and_arguments_0(
+            flash_callback.into_js_value().unchecked_ref(),
+            interval,
+        )?;
     }
 
     // sleep 5 seconds then reload page
     let location = window.location();
-    let reload_callback = Closure::once(move || {
-        location.reload().expect("Page reload failed");
+    let reload_callback = Closure::once_into_js(move || {
+        if let Err(err) = location.reload() {
+            panic!(
+                "{}",
+                err.as_string()
+                    .unwrap_or("Unknown error reloading page".into())
+            );
+        }
     });
-    window
-        .set_timeout_with_callback_and_timeout_and_arguments_0(
-            reload_callback.as_ref().unchecked_ref(),
-            60 * 1000,
-        )
-        .expect("Timeout set failed");
-    reload_callback.forget();
+    window.set_timeout_with_callback_and_timeout_and_arguments_0(
+        reload_callback.unchecked_ref(),
+        PAGE_RELOAD_TIMEOUT,
+    )?;
+
+    Ok(())
 }
 
 #[cfg(test)]
