@@ -55,14 +55,14 @@ fn main() -> Result<(), JsValue> {
     } else {
         format!("{distance:.0} meters")
     };
-    let distance_label = document.create_element("label")?;
-    distance_label.set_class_name("control-label");
-    distance_label.append_with_str_1("Distance:")?;
-    let distance_el = document.create_element("label")?;
-    distance_el.append_with_str_1(&distance_str)?;
     let distance_col = document.create_element("div")?;
     distance_col.set_class_name("col-6");
-    distance_col.append_with_node_2(&distance_label, &distance_el)?;
+    distance_col.set_inner_html(&format!(
+        r#"
+            <label class="control-label">Distance: </label>
+            <label>{distance_str}</label>
+        "#
+    ));
     let route_info = document
         .query_selector("#MainContent_NestContent_lblLatestPosition")?
         .ok_or("Route info element not found")?;
