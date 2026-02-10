@@ -17,6 +17,7 @@ features = [
     "CssStyleDeclaration",
     "Document",
     "Element",
+    "HtmlCollection",
     "HtmlElement",
     "HtmlInputElement",
     "Location",

@@ -51,17 +51,28 @@ fn main() -> Result<(), JsValue> {
 
     // Add element showing "Distance: distance"
     let distance_str = if distance >= 1000.0 {
-        format!("Distance: {:.1} kilometers", distance / 1000.0)
+        format!("{:.1} kilometers", distance / 1000.0)
     } else {
-        format!("Distance: {distance:.0} meters")
+        format!("{distance:.0} meters")
     };
-    let distance_el = document.create_element("span")?;
-    distance_el.set_inner_html(&distance_str);
-    let eta_chart = document
-        .query_selector("canvas#ETAChart")?
-        .ok_or("ETA chart not found")?;
-    eta_chart.before_with_node_1(&distance_el)?;
-    eta_chart.remove();
+    let distance_label = document.create_element("label")?;
+    distance_label.set_class_name("control-label");
+    distance_label.append_with_str_1("Distance:")?;
+    let distance_el = document.create_element("label")?;
+    distance_el.append_with_str_1(&distance_str)?;
+    let distance_col = document.create_element("div")?;
+    distance_col.set_class_name("col-6");
+    distance_col.append_with_node_2(&distance_label, &distance_el)?;
+    let route_info = document
+        .query_selector("#MainContent_NestContent_lblLatestPosition")?
+        .ok_or("Route info element not found")?;
+    let first_row = route_info.children().item(0).ok_or("No 1st row")?;
+    first_row // Shrink first col to 6
+        .children()
+        .item(0)
+        .ok_or("No 1st col in 1st row")?
+        .set_class_name("col-6");
+    first_row.append_with_node_1(&distance_col)?;
 
     // Lights and action when the bus gets closer
     if distance < CLOSE_DISTANCE_THRESHOLD {
