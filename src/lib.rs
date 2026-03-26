@@ -1,3 +1,5 @@
+use gloo_timers::callback::{Interval, Timeout};
+use gloo_utils::{document, window};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement};
 
@@ -12,20 +14,17 @@ use crate::{
 };
 
 const CLOSE_DISTANCE_THRESHOLD: f64 = 750.0;
-const CLOSE_DISTANCE_FLASH_INTERVAL: i32 = 500;
+const CLOSE_DISTANCE_FLASH_INTERVAL: u32 = 500;
 const CLOSER_DISTANCE_THRESHOLD: f64 = 250.0;
-const CLOSER_DISTANCE_FLASH_INTERVAL: i32 = 200;
-const PAGE_RELOAD_TIMEOUT: i32 = 60 * 1000;
+const CLOSER_DISTANCE_FLASH_INTERVAL: u32 = 200;
+const PAGE_RELOAD_TIMEOUT: u32 = 60 * 1000;
 
 #[wasm_bindgen(start)]
 fn main() -> Result<(), JsValue> {
     console_error_panic_hook::set_once();
 
-    let window = web_sys::window().ok_or("Window not found")?;
-    let document = window.document().ok_or("Document not found")?;
-
     // find bus location
-    let bus_location_element = document
+    let bus_location_element = document()
         .query_selector("input#MainContent_NestContent_hfBusLocation")?
         .ok_or("Bus location element not found")?
         .dyn_into::<HtmlInputElement>()?;
@@ -35,7 +34,7 @@ fn main() -> Result<(), JsValue> {
     store_bus_location(bus_position)?;
 
     // find stop locations
-    let stop_locations_element = document
+    let stop_locations_element = document()
         .query_selector("input#MainContent_NestContent_hfBusStopLocations")?
         .ok_or("Stop locations element not found")?
         .dyn_into::<HtmlInputElement>()?;
@@ -56,7 +55,7 @@ fn main() -> Result<(), JsValue> {
     } else {
         format!("{distance:.0} meters")
     };
-    let distance_col = document.create_element("div")?;
+    let distance_col = document().create_element("div")?;
     distance_col.set_class_name("col-6");
     distance_col.set_inner_html(&format!(
         r#"
@@ -64,7 +63,7 @@ fn main() -> Result<(), JsValue> {
             <label>{distance_str}</label>
         "#
     ));
-    let route_info = document
+    let route_info = document()
         .query_selector("#MainContent_NestContent_lblLatestPosition")?
         .ok_or("Route info element not found")?;
     let first_row = route_info.children().item(0).ok_or("No 1st row")?;
@@ -78,12 +77,12 @@ fn main() -> Result<(), JsValue> {
     // Lights and action when the bus gets closer
     if distance < CLOSE_DISTANCE_THRESHOLD {
         let mut flashing = true;
-        let map_element_style = document
+        let map_element_style = document()
             .query_selector("#wheresMyBusOsm .osm-container-outer")?
             .ok_or("Map element not found")?
             .dyn_into::<HtmlElement>()?
             .style();
-        let flash_callback = Closure::new(move || {
+        let flash_callback = move || {
             let style_change_result = if flashing {
                 map_element_style.set_property("border-color", "yellow")
             } else {
@@ -99,33 +98,26 @@ fn main() -> Result<(), JsValue> {
                 );
             }
             flashing = !flashing;
-        });
+        };
         let interval = if distance < CLOSER_DISTANCE_THRESHOLD {
             CLOSER_DISTANCE_FLASH_INTERVAL
         } else {
             CLOSE_DISTANCE_FLASH_INTERVAL
         };
-        window.set_interval_with_callback_and_timeout_and_arguments_0(
-            flash_callback.into_js_value().unchecked_ref(),
-            interval,
-        )?;
+        Interval::new(interval, flash_callback).forget();
     }
 
     // sleep 5 seconds then reload page
-    let location = window.location();
-    let reload_callback = Closure::once_into_js(move || {
-        if let Err(err) = location.reload() {
+    Timeout::new(PAGE_RELOAD_TIMEOUT, move || {
+        if let Err(err) = window().location().reload() {
             panic!(
                 "{}",
                 err.as_string()
                     .unwrap_or("Unknown error reloading page".into())
             );
         }
-    });
-    window.set_timeout_with_callback_and_timeout_and_arguments_0(
-        reload_callback.unchecked_ref(),
-        PAGE_RELOAD_TIMEOUT,
-    )?;
+    })
+    .forget();
 
     Ok(())
 }
