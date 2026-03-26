@@ -1,38 +1,15 @@
-use jiff::civil::DateTime;
-use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement};
 
 mod haversine;
 mod history;
+mod positions;
 
-use crate::{haversine::haversine, history::store_bus_location};
-
-#[derive(Serialize, Deserialize, Clone, Copy)]
-enum Direction {
-    N,
-    S,
-    E,
-    W,
-}
-
-#[derive(Serialize, Deserialize, Clone, Copy)]
-#[serde(rename_all = "PascalCase")]
-struct BusPosition {
-    latitude: f64,
-    longitude: f64,
-    heading: Direction,
-    heading_degrees: f64,
-    time: DateTime,
-    speed: f64,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct StopPosition {
-    latitude: f64,
-    longitude: f64,
-}
+use crate::{
+    haversine::haversine,
+    history::store_bus_location,
+    positions::{BusPosition, StopPosition},
+};
 
 const CLOSE_DISTANCE_THRESHOLD: f64 = 750.0;
 const CLOSE_DISTANCE_FLASH_INTERVAL: i32 = 500;
@@ -151,21 +128,4 @@ fn main() -> Result<(), JsValue> {
     )?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_position_decoding() {
-        let bus_location_json = r#"{"Latitude":43.7395222,"Longitude":-79.4443416,"Heading":"E","HeadingDegrees":74.0,"Time":"2026-01-06T08:59:49","Speed":15.998398780822754}"#;
-        let stop_locations_json = r#"[{"X":625727.54153501848,"Y":4842863.9580828669,"Longitude":-79.43893765643179,"Latitude":43.728150882692312}]"#;
-
-        let bus_location: BusPosition = serde_json::from_str(bus_location_json).unwrap();
-        let stop_locations: Vec<StopPosition> = serde_json::from_str(stop_locations_json).unwrap();
-
-        assert_eq!(43.7395222, bus_location.latitude);
-        assert_eq!(43.728150882692312, stop_locations[0].latitude);
-    }
 }
