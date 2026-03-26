@@ -1,4 +1,5 @@
-use serde::Deserialize;
+use jiff::civil::DateTime;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement};
 
@@ -6,9 +7,28 @@ mod haversine;
 
 use haversine::haversine;
 
+#[derive(Serialize, Deserialize)]
+enum Direction {
+    N,
+    S,
+    E,
+    W,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct BusPosition {
+    latitude: f64,
+    longitude: f64,
+    heading: Direction,
+    heading_degrees: f64,
+    time: DateTime,
+    speed: f64,
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct Position {
+struct StopPosition {
     latitude: f64,
     longitude: f64,
 }
@@ -31,7 +51,7 @@ fn main() -> Result<(), JsValue> {
         .query_selector("input#MainContent_NestContent_hfBusLocation")?
         .ok_or("Bus location element not found")?
         .dyn_into::<HtmlInputElement>()?;
-    let bus_position: Position = serde_json::from_str(&bus_location_element.value())
+    let bus_position: BusPosition = serde_json::from_str(&bus_location_element.value())
         .map_err(|err| format!("Error decoding bus location: {:?}", err.classify()))?;
 
     // find stop locations
@@ -39,8 +59,9 @@ fn main() -> Result<(), JsValue> {
         .query_selector("input#MainContent_NestContent_hfBusStopLocations")?
         .ok_or("Stop locations element not found")?
         .dyn_into::<HtmlInputElement>()?;
-    let stop_positions: Vec<Position> = serde_json::from_str(&stop_locations_element.value())
-        .map_err(|err| format!("Error decoding stop locations: {:?}", err.classify()))?;
+    let stop_positions: Vec<StopPosition> =
+        serde_json::from_str(&stop_locations_element.value())
+            .map_err(|err| format!("Error decoding stop locations: {:?}", err.classify()))?;
 
     // calculate distance
     let bus_lat = bus_position.latitude;
@@ -138,8 +159,8 @@ mod tests {
         let bus_location_json = r#"{"Latitude":43.7395222,"Longitude":-79.4443416,"Heading":"E","HeadingDegrees":74.0,"Time":"2026-01-06T08:59:49","Speed":15.998398780822754}"#;
         let stop_locations_json = r#"[{"X":625727.54153501848,"Y":4842863.9580828669,"Longitude":-79.43893765643179,"Latitude":43.728150882692312}]"#;
 
-        let bus_location: Position = serde_json::from_str(bus_location_json).unwrap();
-        let stop_locations: Vec<Position> = serde_json::from_str(stop_locations_json).unwrap();
+        let bus_location: BusPosition = serde_json::from_str(bus_location_json).unwrap();
+        let stop_locations: Vec<StopPosition> = serde_json::from_str(stop_locations_json).unwrap();
 
         assert_eq!(43.7395222, bus_location.latitude);
         assert_eq!(43.728150882692312, stop_locations[0].latitude);
