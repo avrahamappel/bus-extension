@@ -1,17 +1,12 @@
-use std::collections::HashMap;
-
-use gloo_storage::{errors::StorageError, LocalStorage, Storage};
-use jiff::{
-    civil::{Date, DateTime},
-    ToSpan, Zoned,
-};
+use jiff::civil::DateTime;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement};
 
 mod haversine;
+mod history;
 
-use haversine::haversine;
+use crate::{haversine::haversine, history::store_bus_location};
 
 #[derive(Serialize, Deserialize, Clone, Copy)]
 enum Direction {
@@ -44,7 +39,6 @@ const CLOSE_DISTANCE_FLASH_INTERVAL: i32 = 500;
 const CLOSER_DISTANCE_THRESHOLD: f64 = 250.0;
 const CLOSER_DISTANCE_FLASH_INTERVAL: i32 = 200;
 const PAGE_RELOAD_TIMEOUT: i32 = 60 * 1000;
-const STORAGE_KEY: &str = "bus-extension.bus-position-history";
 
 #[wasm_bindgen(start)]
 fn main() -> Result<(), JsValue> {
@@ -155,37 +149,6 @@ fn main() -> Result<(), JsValue> {
         reload_callback.unchecked_ref(),
         PAGE_RELOAD_TIMEOUT,
     )?;
-
-    Ok(())
-}
-
-fn store_bus_location(bus_position: BusPosition) -> Result<(), JsValue> {
-    type History = HashMap<Date, Vec<BusPosition>>;
-
-    let mut history: History = LocalStorage::get(STORAGE_KEY).unwrap_or_default();
-    let today = Zoned::now().date();
-
-    // Prune history older than 30 days
-    // TODO extract and test
-    history.retain(|date, _| (today - 30.days()) <= *date);
-
-    // Insert current position into today's list
-    history
-        .entry(today)
-        .and_modify(|today_history| {
-            today_history.push(bus_position);
-        })
-        .or_insert(vec![bus_position]);
-
-    // Re-save history
-    if let Err(err) = LocalStorage::set(STORAGE_KEY, history) {
-        let message = match err {
-            StorageError::JsError(e) => e.to_string(),
-            StorageError::SerdeError(e) => e.to_string(),
-            StorageError::KeyNotFound(_) => unreachable!(),
-        };
-        return Err(message.into());
-    }
 
     Ok(())
 }
