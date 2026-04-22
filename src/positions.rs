@@ -4,7 +4,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Copy)]
 pub enum Direction {
     N,
+    NE,
+    NW,
     S,
+    SE,
+    SW,
     E,
     W,
 }
@@ -41,6 +45,15 @@ mod tests {
 
         assert_eq!(43.7395222, bus_location.latitude);
         assert_eq!(43.728150882692312, stop_locations[0].latitude);
+    }
+
+    #[test]
+    fn bus_location_heading_supports_diagonals() {
+        let json = r#"{"Latitude":43.7296517,"Longitude":-79.4411623,"Heading":"SW","HeadingDegrees":205.0,"Time":"2026-04-22T09:08:14","Speed":29.998800277709961}"#;
+        assert!(matches!(
+            serde_json::from_str::<BusPosition>(json),
+            Ok(BusPosition { .. })
+        ));
     }
 
     #[test]
