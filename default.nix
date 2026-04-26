@@ -27,6 +27,7 @@ let
 
   wasmBindgenCliSourceHashes = {
     "0.2.114" = "sha256-xrCym+rFY6EUQFWyWl6OPA+LtftpUAE5pIaElAIVqW0=";
+    "0.2.117" = "sha256-vtDQXL8FSgdutqXG7/rBUWgrYCtzdmeVQQkWkjasvZU=";
   };
   wasmBindgenCliVendorHashes = {
     "0.2.114" = "sha256-Z8+dUXPQq7S+Q7DWNr2Y9d8GMuEdSnq00quUR0wDNPM=";
