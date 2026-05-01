@@ -1,9 +1,9 @@
 { stdenv
-, callPackage
 , rustPlatform
 , binaryen
 , cargo
 , rustc
+, wasm-bindgen-cli
 , wasm-pack
 }:
 
@@ -16,8 +16,6 @@ let
   addonId = manifestJson.browser_specific_settings.gecko.id;
 
   firefoxExtensionPath = "extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
-
-  wasm-bindgen-cli = callPackage ./wasm-bindgen-cli.nix { };
 in
 
 stdenv.mkDerivation {

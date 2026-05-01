@@ -15,15 +15,22 @@
       ];
 
       perSystem = { config, pkgs, ... }: {
-        packages.bus-extension = (pkgs.callPackage ./. { }) {
-          version = builtins.concatStringsSep "-" [
-            (builtins.substring 0 4 self.lastModifiedDate)
-            (builtins.substring 4 2 self.lastModifiedDate)
-            (builtins.substring 6 2 self.lastModifiedDate)
-            (self.shortRev or self.dirtyShortRev)
-          ];
+        packages = rec {
+          bus-extension = (pkgs.callPackage ./. {
+            inherit wasm-bindgen-cli;
+          }) {
+            version = builtins.concatStringsSep "-" [
+              (builtins.substring 0 4 self.lastModifiedDate)
+              (builtins.substring 4 2 self.lastModifiedDate)
+              (builtins.substring 6 2 self.lastModifiedDate)
+              (self.shortRev or self.dirtyShortRev)
+            ];
+          };
+
+          wasm-bindgen-cli = pkgs.callPackage ./wasm-bindgen-cli.nix { };
+
+          default = bus-extension;
         };
-        packages.default = config.packages.bus-extension;
 
         devShells.default = pkgs.mkShell {
           packages = config.packages.default.nativeBuildInputs ++ (with pkgs; [
@@ -33,6 +40,17 @@
             rustfmt
             zip
           ]);
+        };
+
+        apps.update-wasm-bindgen = {
+          type = "app";
+          program = pkgs.writeShellScriptBin "update-wasm-bindgen" ''
+            ${pkgs.lib.getExe pkgs.nix-update} \
+              --flake \
+              --version=skip \
+              --override-filename wasm-bindgen-cli.nix \
+              wasm-bindgen-cli
+          '';
         };
       };
     });
