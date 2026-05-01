@@ -8,11 +8,10 @@
 let
   wasmBindgenCliSourceHashes = {
     "0.2.114" = "sha256-xrCym+rFY6EUQFWyWl6OPA+LtftpUAE5pIaElAIVqW0=";
-    "0.2.117" = "sha256-vtDQXL8FSgdutqXG7/rBUWgrYCtzdmeVQQkWkjasvZU=";
-    "0.2.120" = "sha256-Dkkx8Bhfk+y/jEz9Fzwytmv2N3Gj/7ST+5MlPRzzetU=";
   };
   wasmBindgenCliVendorHashes = {
     "0.2.114" = "sha256-Z8+dUXPQq7S+Q7DWNr2Y9d8GMuEdSnq00quUR0wDNPM=";
+    "0.2.120" = "sha256-Dkkx8Bhfk+y/jEz9Fzwytmv2N3Gj/7ST+5MlPRzzetU=";
   };
 
   wasmBindgenVersion =
