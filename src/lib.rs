@@ -1,6 +1,5 @@
 use gloo_timers::callback::{Interval, Timeout};
 use gloo_utils::{document, window};
-use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement};
 
@@ -11,14 +10,8 @@ mod positions;
 use crate::{
     haversine::haversine,
     history::store_bus_location,
-    positions::{BusPosition, StopPosition},
+    positions::{BusPositions, StopPosition},
 };
-
-#[derive(Deserialize)]
-enum Either<R, L> {
-    Right(R),
-    Left(L),
-}
 
 const CLOSE_DISTANCE_THRESHOLD: f64 = 750.0;
 const CLOSE_DISTANCE_FLASH_INTERVAL: u32 = 500;
@@ -35,13 +28,8 @@ fn main() -> Result<(), JsValue> {
         .query_selector("input#MainContent_NestContent_hfBusLocation")?
         .ok_or("Bus location element not found")?
         .dyn_into::<HtmlInputElement>()?;
-    let bus_position: Either<BusPosition,Vec<BusPosition>> = serde_json::from_str(&bus_location_element.value())
-        .map_err(|err| format!("Error decoding bus location: {:?}. Check value of `MainContent_NestContent_hfBusLocation`", err.classify()))?;
-
-    let bus_position = match bus_position {
-        Either::Right(bp) => bp,
-        Either::Left(bps) => *bps.first().ok_or("Bus position list was empty")?,
-    };
+    let bus_position = serde_json::from_str::<BusPositions >(&bus_location_element.value())
+        .map_err(|err| format!("Error decoding bus location: {:?}. Check value of `MainContent_NestContent_hfBusLocation`", err.classify()))?.get()?;
 
     store_bus_location(bus_position)?;
 

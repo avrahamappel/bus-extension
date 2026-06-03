@@ -25,6 +25,27 @@ pub struct BusPosition {
 }
 
 #[derive(Deserialize)]
+pub enum BusPositions {
+    Single(BusPosition),
+    List(Vec<BusPosition>),
+}
+
+impl BusPositions {
+    pub fn get(self) -> Result<BusPosition, &'static str> {
+        match self {
+            Self::Single(bp) => Ok(bp),
+            Self::List(mut bps) => {
+                if bps.len() > 1 {
+                    Err("Multiple bus positions given")
+                } else {
+                    bps.pop().ok_or("Bus position list was empty")
+                }
+            },
+        }
+    }
+}
+
+#[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct StopPosition {
     pub latitude: f64,
@@ -36,7 +57,8 @@ mod tests {
     use super::*;
 
     const BUS_LOCATION_JSON: &str = r#"{"Latitude":43.7395222,"Longitude":-79.4443416,"Heading":"E","HeadingDegrees":74.0,"Time":"2026-01-06T08:59:49","Speed":15.998398780822754}"#;
-    const STOP_LOCATIONS_JSON: &str = r#"[{"X":625727.54153501848,"Y":4842863.9580828669,"Longitude":-79.43893765643179,"Latitude":43.728150882692312}]"#;
+    const STOP_LOCATIONS_JSON: &str =
+        r#"[{"X":625727.54153501848,"Y":4842863.9580828669,"Longitude":-79.43,"Latitude":43.72}]"#;
 
     #[test]
     fn position_decoding() {
@@ -44,7 +66,7 @@ mod tests {
         let stop_locations: Vec<StopPosition> = serde_json::from_str(STOP_LOCATIONS_JSON).unwrap();
 
         assert_eq!(43.7395222, bus_location.latitude);
-        assert_eq!(43.728150882692312, stop_locations[0].latitude);
+        assert_eq!(43.72, stop_locations[0].latitude);
     }
 
     #[test]
@@ -55,6 +77,21 @@ mod tests {
             Ok(BusPosition { .. })
         ));
     }
+
+    #[test]
+    fn bus_locations_can_decode_from_single() {
+        //let json = r#"[{"Latitude":43.7369693,"Longitude":-79.4339603,"Label":""}]"#;
+        let json = r#"{"Latitude":43.7369693,"Longitude":-79.4339603,"Label":""}"#;
+        assert!(matches!(
+            serde_json::from_str(json),
+            Ok(BusPositions::Single(BusPosition { .. }))
+        ));
+    }
+    fn bus_locations_can_decode_from_list() {}
+    fn bus_locations_single_get_returns_single() {}
+    fn bus_locations_list_get_returns_first() {}
+    fn bus_locations_list_get_returns_err_if_empty() {}
+    fn bus_locations_list_get_returns_err_if_more_than_one() {}
 
     #[test]
     fn bus_reserialization() {
