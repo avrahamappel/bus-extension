@@ -28,7 +28,7 @@ fn main() -> Result<(), JsValue> {
         .query_selector("input#MainContent_NestContent_hfBusLocation")?
         .ok_or("Bus location element not found")?
         .dyn_into::<HtmlInputElement>()?;
-    let bus_position = serde_json::from_str::<BusPositions >(&bus_location_element.value())
+    let bus_position = serde_json::from_str::<BusPositions>(&bus_location_element.value())
         .map_err(|err| format!("Error decoding bus location: {:?}. Check value of `MainContent_NestContent_hfBusLocation`", err.classify()))?.get()?;
 
     store_bus_location(bus_position)?;
