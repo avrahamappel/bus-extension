@@ -1,4 +1,2 @@
-<input type="hidden" name="ctl00$ctl00$MainContent$NestContent$hfBusLocation" id="MainContent_NestContent_hfBusLocation" value="[{&quot;Latitude&quot;:43.7369693,&quot;Longitude&quot;:-79.4339603,&quot;Label&quot;:&quot;&quot;}]">
-uncaught exception: Error decoding bus location: Syntax. Check value of `MainContent_NestContent_hfBusLocation`
 show full error in console
 short error in html

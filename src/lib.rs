@@ -31,7 +31,7 @@ fn main() -> Result<(), JsValue> {
     let bus_position = serde_json::from_str::<BusPositions>(&bus_location_element.value())
         .map_err(|err| format!("Error decoding bus location: {:?}. Check value of `MainContent_NestContent_hfBusLocation`", err.classify()))?.get()?;
 
-    store_bus_location(bus_position)?;
+    store_bus_location(bus_position.clone())?;
 
     // find stop locations
     let stop_locations_element = document()

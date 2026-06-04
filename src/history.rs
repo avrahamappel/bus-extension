@@ -4,7 +4,7 @@ use gloo_storage::{errors::StorageError, LocalStorage, Storage};
 use jiff::{civil::Date, ToSpan, Zoned};
 use wasm_bindgen::prelude::*;
 
-use crate::BusPosition;
+use crate::positions::BusPosition;
 
 type History = HashMap<Date, Vec<BusPosition>>;
 
@@ -21,7 +21,7 @@ pub fn store_bus_location(bus_position: BusPosition) -> Result<(), JsValue> {
     history
         .entry(today)
         .and_modify(|today_history| {
-            today_history.push(bus_position);
+            today_history.push(bus_position.clone());
         })
         .or_insert(vec![bus_position]);
 
