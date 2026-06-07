@@ -1,5 +1,6 @@
 { stdenv
 , rustPlatform
+, writableTmpDirAsHomeHook
 , binaryen
 , cargo
 , rustc
@@ -10,7 +11,7 @@
 { version }:
 
 let
-  cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+  cargoToml = fromTOML (builtins.readFile ./Cargo.toml);
   manifestJson = builtins.fromJSON (builtins.readFile ./extension/manifest.json);
 
   addonId = manifestJson.browser_specific_settings.gecko.id;
@@ -29,6 +30,8 @@ stdenv.mkDerivation {
 
   nativeBuildInputs = [
     rustPlatform.cargoSetupHook
+    rustPlatform.cargoCheckHook
+    writableTmpDirAsHomeHook
     binaryen
     cargo
     rustc
@@ -37,9 +40,8 @@ stdenv.mkDerivation {
     wasm-pack
   ];
 
-  configurePhase = ''
-    export HOME=$(mktemp -d)
-  '';
+  doCheck = true;
+  cargoCheckType = "release";
 
   buildPhase = ''
     wasm-pack build --target no-modules --no-typescript --no-pack --mode no-install
