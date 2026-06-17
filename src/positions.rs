@@ -131,7 +131,7 @@ mod tests {
     fn bus_locations_list_get_returns_err_if_empty() {
         let bus_positions = BusPositions::List(vec![]);
 
-        assert!(matches!(bus_positions.get(), Err(_)));
+        assert!(bus_positions.get().is_err());
     }
 
     #[test]
@@ -155,7 +155,7 @@ mod tests {
             },
         ]);
 
-        assert!(matches!(bus_positions.get(), Err(_)));
+        assert!(bus_positions.get().is_err());
     }
 
     #[test]
