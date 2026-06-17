@@ -74,6 +74,12 @@ fn main() -> Result<(), JsValue> {
         .set_class_name("col-6");
     first_row.append_with_node_1(&distance_col)?;
 
+    // Make sure the screen stays awake
+    let _ = window()
+        .navigator()
+        .wake_lock()
+        .request(web_sys::WakeLockType::Screen);
+
     // Lights and action when the bus gets closer
     if distance < CLOSE_DISTANCE_THRESHOLD {
         let mut flashing = true;

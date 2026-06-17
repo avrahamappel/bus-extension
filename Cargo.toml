@@ -25,6 +25,10 @@ features = [
     "HtmlElement",
     "HtmlInputElement",
     "Location",
+    "Navigator",
+    "WakeLock",
+    "WakeLockSentinel",
+    "WakeLockType",
     "Window",
 ]
 version = "0.3.83"
