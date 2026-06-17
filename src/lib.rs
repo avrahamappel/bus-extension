@@ -75,6 +75,8 @@ fn main() -> Result<(), JsValue> {
     first_row.append_with_node_1(&distance_col)?;
 
     // Make sure the screen stays awake
+    // Even if the request fails or is revoked, we don't need to re-request
+    // the lock as the extension is refreshed every 60 seconds anyway
     let _ = window()
         .navigator()
         .wake_lock()

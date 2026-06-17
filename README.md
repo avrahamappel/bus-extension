@@ -7,6 +7,7 @@ This Firefox extension adds some trivial enhancements to the "Where's My Bus" pa
 * Reloads the page every 1 minute
 * Adds an approximate distance (in km) between the bus and the first stop
 * Add a visual alert when the bus is close (map border flashes)
+* Prevents the screen from going to sleep while the tab is open
 
 ## Building
 
