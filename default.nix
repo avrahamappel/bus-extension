@@ -41,6 +41,9 @@ stdenv.mkDerivation {
   ];
 
   doCheck = true;
+  # For some reason cargoCheckHook doesn't use .cargo/config.toml,
+  # so we have to specify web-sys unstable apis flag again here
+  RUSTFLAGS = "--cfg=web_sys_unstable_apis";
   cargoCheckType = "release";
 
   buildPhase = ''
